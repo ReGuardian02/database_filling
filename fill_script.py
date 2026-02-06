@@ -1,5 +1,5 @@
 import random
-from seeds import catalogs_forestries_seed, catalogs_forestry_districts_seed, users_seed
+from seeds import catalogs_forestries_seed, catalogs_forestry_districts_seed, users_seed, cameras_seed
 from sqlalchemy import create_engine, MetaData, Table, text, select
 
 
@@ -15,6 +15,10 @@ with engine.begin() as conn:  # автоматически commit/rollback
     catalogs_forestrty_districts_table = Table("catalogs_forestry_districts", metadata, autoload_with=conn)
     users_table = Table("users", metadata, autoload_with=conn)
     units_table = Table("units", metadata, autoload_with=conn)
+    cameras_table = Table("cameras", metadata, autoload_with=conn)
+    stream_servers_table = Table("stream_servers", metadata, autoload_with=conn)
+    regions_table = Table("regions", metadata, autoload_with=conn)
+    camera_models_table = Table("camera_models", metadata, autoload_with=conn)
 
     # ==== ЗАПОЛНЕНИЕ catalogs_forestrty_districts ====
     # Получаем все существующие коды land_category
@@ -98,3 +102,68 @@ with engine.begin() as conn:  # автоматически commit/rollback
     conn.execute(stmt, users)
 
     print("Таблица users успешно инициализирована")
+
+    # ==========================
+    # ЗАПОЛНЕНИЕ ТАБЛИЦЫ CAMERAS
+    # ==========================
+    # ---- Получаем FK-значения ----
+    region_ids = [r[0] for r in conn.execute(select(regions_table.c.id)).fetchall()]
+    model_ids = [r[0] for r in conn.execute(select(camera_models_table.c.id)).fetchall()]
+    stream_server_ids = [r[0] for r in conn.execute(select(stream_servers_table.c.id)).fetchall()]
+    unit_ids = [r[0] for r in conn.execute(select(units_table.c.id)).fetchall()]
+    user_ids = [r[0] for r in conn.execute(select(users_table.c.id)).fetchall()]
+
+    if not all([region_ids, model_ids, stream_server_ids, unit_ids]):
+        raise RuntimeError("Недостаточно данных для FK cameras")
+
+    # ---- Генерация сидов ----
+    cameras = cameras_seed.generate_cameras(5)
+
+    # ---- Дополнение FK и зависимых полей ----
+    for row in cameras:
+        row["region"] = random.choice(region_ids)
+        row["model"] = random.choice(model_ids)
+        row["streamServer"] = random.choice(stream_server_ids)
+        row["unit"] = random.choice(unit_ids)
+
+        # lockuid логика
+        if row["locked"] == 1:
+            row["lockuid"] = random.choice(user_ids)
+        else:
+            row["lockuid"] = -1
+
+        # zbxhttpitemid = zbxicmpitemid - 1
+        row["zbxhttpitemid"] = row["zbxicmpitemid"] - 1
+
+    # ---- Вставка ----
+    stmt = text("""
+        INSERT INTO cameras (
+            id, uuid, region, model, streamServer, streamName,
+            localAddress, localMask, localGateway, name,
+            userName, password, latitude, longitude, manageUrl,
+            deviceIpAddressCamera, height, locked, lockuid,
+            archiveIdentify, maintenance,
+            remoteTourServerAddress, remoteTourServer,
+            ownerInformation, zbxicmpitemid, zbxhttpitemid,
+            operator, unit, rtspPort, orderIndex, state,
+            streamInput, serialNumber, ethernetHardwareType,
+            infoMountAddress, infoInverter,
+            installationDate, warrantyPeriod
+        )
+        VALUES (
+            :id, :uuid, :region, :model, :streamServer, :streamName,
+            :localAddress, :localMask, :localGateway, :name,
+            :userName, :password, :latitude, :longitude, :manageUrl,
+            :deviceIpAddressCamera, :height, :locked, :lockuid,
+            :archiveIdentify, :maintenance,
+            :remoteTourServerAddress, :remoteTourServer,
+            :ownerInformation, :zbxicmpitemid, :zbxhttpitemid,
+            :operator, :unit, :rtspPort, :orderIndex, :state,
+            :streamInput, :serialNumber, :ethernetHardwareType,
+            :infoMountAddress, :infoInverter,
+            :installationDate, :warrantyPeriod
+        )
+    """)
+
+    conn.execute(stmt, cameras)
+    print("Таблица cameras успешно заполнена")
