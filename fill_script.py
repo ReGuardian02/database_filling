@@ -14,11 +14,12 @@ with engine.begin() as conn:  # автоматически commit/rollback
     catalog_land_category_table = Table("catalogLandCategory", metadata, autoload_with=conn)
     catalogs_forestrty_districts_table = Table("catalogs_forestry_districts", metadata, autoload_with=conn)
     users_table = Table("users", metadata, autoload_with=conn)
+    units_table = Table("units", metadata, autoload_with=conn)
 
     # ==== ЗАПОЛНЕНИЕ catalogs_forestrty_districts ====
     # Получаем все существующие коды land_category
-    result = conn.execute(select(catalog_land_category_table.c.code))
-    land_category_codes = [row[0] for row in result.fetchall()]
+    land_cat_result = conn.execute(select(catalog_land_category_table.c.code))
+    land_category_codes = [row[0] for row in land_cat_result.fetchall()]
 
     if not land_category_codes:
         raise RuntimeError("В таблице catalogLandCategory нет записей!")
@@ -41,8 +42,8 @@ with engine.begin() as conn:  # автоматически commit/rollback
 
     # ==== ЗАПОЛНЕНИЕ catalogs_forestrty_districts ====
     # ---- Получаем все forestry_id ----
-    result = conn.execute(select(catalogs_forestries_table.c.id))
-    forestry_ids = [row[0] for row in result.fetchall()]
+    forestries_result = conn.execute(select(catalogs_forestries_table.c.id))
+    forestry_ids = [row[0] for row in forestries_result.fetchall()]
 
     if not forestry_ids:
         raise RuntimeError("catalogs_forestries пуст — некуда привязывать districts")
@@ -67,7 +68,15 @@ with engine.begin() as conn:  # автоматически commit/rollback
     print("Каталог участковых лесничеств успешно инициализирован")
 
     # ==== ЗАПОЛНЕНИЕ users ====
+    units_result = conn.execute(select(units_table.c.id))
+    unit_ids = [row[0] for row in units_result.fetchall()]
+
+    if not unit_ids:
+        raise RuntimeError("units пуст — некуда привязывать users.unit")
+
     users = users_seed.generate_users(5)
+    for row in users:
+        row["unit"] = random.choice(unit_ids)
 
     stmt = text("""
         INSERT INTO users (
