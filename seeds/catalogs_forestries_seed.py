@@ -34,12 +34,13 @@ FORESTRY_NAMES = [
 def generate_multipolygon_wkt(center_lat: float, center_lon: float, points: int = 8, radius: float = 0.01) -> str:
     coords = []
     for _ in range(points):
-        lat = center_lat + random.uniform(-radius, radius)
-        lon = center_lon + random.uniform(-radius, radius)
+        lat = round(center_lat + random.uniform(-radius, radius), 6)  # ограничиваем точность
+        lon = round(center_lon + random.uniform(-radius, radius), 6)
         coords.append(f"{lon} {lat}")
     coords.append(coords[0])  # замыкаем полигон
     polygon_body = ", ".join(coords)
-    return f"MULTIPOLYGON ((({polygon_body})))"
+    # Вставляем как корректный WKT для MySQL
+    return f"MULTIPOLYGON((({polygon_body})))"
 
 # ---- Генерация набора записей ----
 
