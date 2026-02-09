@@ -67,4 +67,5 @@ def generate_forestries(count: int) -> list[dict]:
             "code_oiv": code_oiv,
             "polygon": generate_multipolygon_wkt(center_lat, center_lon),
         })
+
     return rows

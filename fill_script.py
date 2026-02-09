@@ -1,5 +1,5 @@
 import random
-from seeds import catalogs_forestries_seed, catalogs_forestry_districts_seed, users_seed, cameras_seed
+from generators import catalogs_forestries, catalogs_forestry_districts, users, cameras
 from sqlalchemy import create_engine, MetaData, Table, text, select, insert
 
 # ---- Настройка подключения ----
@@ -19,9 +19,9 @@ with engine.begin() as conn:  # автоматически commit/rollback
     regions_table = Table("regions", metadata, autoload_with=conn)
     camera_models_table = Table("camera_models", metadata, autoload_with=conn)
 
-    # =======================================
-    # ЗАПОЛНЕНИЕ catalogs_forestries
-    # =======================================
+    # ==============================
+    # ЗАПОЛНЕНИЕ CATALOGS_FORESTRIES
+    # ==============================
     conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
     conn.execute(text("TRUNCATE TABLE catalogs_forestries"))
     conn.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
@@ -79,9 +79,9 @@ with engine.begin() as conn:  # автоматически commit/rollback
     conn.execute(stmt, districts)
 
     print("Каталог участковых лесничеств успешно инициализирован")
-    # ================
-    # ЗАПОЛНЕНИЕ users
-    # ================
+    # =================
+    # ЗАПОЛНЕНИЕ USERS
+    # =================
     conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
     conn.execute(text("TRUNCATE TABLE users"))
     conn.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
@@ -117,9 +117,9 @@ with engine.begin() as conn:  # автоматически commit/rollback
 
     print("Таблица users успешно инициализирована")
 
-    # ==========================
-    # ЗАПОЛНЕНИЕ ТАБЛИЦЫ CAMERAS
-    # ==========================
+    # ==================
+    # ЗАПОЛНЕНИЕ CAMERAS
+    # ==================
     conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
     conn.execute(text("TRUNCATE TABLE camstat"))
     conn.execute(text("TRUNCATE TABLE cameras"))
