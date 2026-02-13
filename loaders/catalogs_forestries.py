@@ -1,13 +1,13 @@
 import random
-from sqlalchemy import text, select
+from sqlalchemy import text, select, insert
+
+from db.tables import truncate_table
 
 
 def load_catalogs_forestries(conn, tables, rows: list[dict]) -> None:
+    cameras = tables["cameras"]
     land_categories = tables["catalogLandCategory"]
-
-    conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
-    conn.execute(text("TRUNCATE TABLE catalogs_forestries"))
-    conn.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
+    truncate_table(conn, "catalogs_forestries")
 
     land_codes = [
         r[0]
@@ -22,12 +22,13 @@ def load_catalogs_forestries(conn, tables, rows: list[dict]) -> None:
     for row in rows:
         row["land_category"] = random.choice(land_codes)
 
-    stmt = text("""
-        INSERT INTO catalogs_forestries
-            (name, code, code_lv, code_oiv, polygon, land_category)
-        VALUES
-            (:name, :code, :code_lv, :code_oiv,
-             ST_GeomFromText(:polygon), :land_category)
-    """)
-
-    conn.execute(stmt, rows)
+    # stmt = text("""
+    #     INSERT INTO catalogs_forestries
+    #         (name, code, code_lv, code_oiv, polygon, land_category)
+    #     VALUES
+    #         (:name, :code, :code_lv, :code_oiv,
+    #          ST_GeomFromText(:polygon), :land_category)
+    # """)
+    #
+    # conn.execute(stmt, rows)
+    conn.execute(insert(cameras).values(rows))

@@ -17,9 +17,10 @@ def random_date(start_days: int, end_days: int) -> str:
 
 def generate_cameras(count: int) -> list[dict]:
     rows = []
+    ids = random.sample(range(1, 10_000_000), count)
 
     for _ in range(count):
-        cam_id = random.randint(1, 1000)
+        cam_id = ids.pop()
         ip_last = f"{random.randint(0, 255):03d}"
         port = random.randint(100, 999)
 
