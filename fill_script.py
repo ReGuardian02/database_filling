@@ -20,11 +20,11 @@ def main():
     with engine.begin() as conn:
         tables = reflect_tables(conn)
 
-        # load_catalogs_forestries(conn, tables, generate_forestries(5))
-        # load_catalogs_forestry_districts(conn, tables, generate_forestry_districts(20))
-        # load_users(conn, tables, generate_users(5))
-        load_cameras(conn, tables, generate_cameras(5))
-        # load_owners(conn, tables, generate_owners(5))
+        load_catalogs_forestries(conn, tables, generate_forestries(5))
+        load_catalogs_forestry_districts(conn, tables, generate_forestry_districts(20))
+        load_users(conn, tables, generate_users(5))
+        # load_cameras(conn, tables, generate_cameras(8))
+        load_owners(conn, tables, generate_owners(10))
 
 
 if __name__ == "__main__":
