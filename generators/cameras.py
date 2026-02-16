@@ -24,9 +24,6 @@ def generate_cameras(count: int) -> list[dict]:
         ip_last = f"{random.randint(0, 255):03d}"
         port = random.randint(100, 999)
 
-        locked = 1 if random.random() < 0.2 else 0
-        maintenance = 1 if random.random() < 0.2 else 0
-
         username = fake.user_name()
         password = fake.password(length=10)
 
@@ -45,28 +42,14 @@ def generate_cameras(count: int) -> list[dict]:
             "latitude": round(random.uniform(LAT_MIN, LAT_MAX), 12),
             "longitude": round(random.uniform(LON_MIN, LON_MAX), 12),
             "manageUrl": f"http://{local_address}:{port}",
-            "deviceIpAddressCamera": "",
             "height": random.randint(1, 100),
-            "locked": locked,
-            "archiveIdentify": f"RU.01.{cam_id}",
-            "maintenance": maintenance,
-            "remoteTourServerAddress": "",
-            "remoteTourServer": 0,
             "ownerInformation": fake.sentence(),
-            "zbxicmpitemid": random.randint(35000, 40000),
-            "zbxhttpitemid": 0,  # временно, будет пересчитано в fill_script
-            "operator": 1,
             "rtspPort": str(port),
-            "orderIndex": 0,
-            "state": random.randint(1, 3),
             "streamInput": (
                 f"rtsp://{username}:{password}@"
                 f"{local_address}:{port}/axis-media/media.amp"
             ),
-            "serialNumber": "",
-            "ethernetHardwareType": 0,
             "infoMountAddress": fake.address(),
-            "infoInverter": 0,
             "installationDate": random_date(-120, -90),
             "warrantyPeriod": random_date(30, 365 * 5),
         }
