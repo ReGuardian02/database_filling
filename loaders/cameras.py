@@ -1,13 +1,13 @@
+import logging
 import random
-from sqlalchemy import select, insert
-from db.tables import truncate_table, safe_insert
-import uuid
+from sqlalchemy import select, insert, text
+from db.tables import truncate_table
 
 
 def load_cameras(conn, tables, rows: list[dict]) -> None:
     cameras = tables["cameras"]
-    # truncate_table(conn, "cameras")
-    #
+    truncate_table(conn, "cameras")
+
     # regions = [r[0] for r in conn.execute(select(tables["regions"].c.id))]
     # models = [r[0] for r in conn.execute(select(tables["camera_models"].c.id))]
     # streams = [r[0] for r in conn.execute(select(tables["stream_servers"].c.id))]
@@ -30,25 +30,71 @@ def load_cameras(conn, tables, rows: list[dict]) -> None:
     #
     #     row["zbxhttpitemid"] = row["zbxicmpitemid"] - 1
     #
-    # # conn.execute(insert(cameras).values(rows))
-    # safe_insert(conn, cameras, rows)
-    # Пример данных для вставки
+    # conn.execute(insert(cameras).values(rows))
+
+    # Вставляем одну запись
+    insert_query = text("""
+         INSERT INTO `cameras` (
+             `uuid`, `id`, `streamName`, `localAddress`, `localMask`, `localGateway`, 
+             `name`, `userName`, `password`, `latitude`, `longitude`, `manageUrl`, 
+             `deviceIpAddressCamera`, `height`, `locked`, `archiveIdentify`, `maintenance`, 
+             `remoteTourServerAddress`, `remoteTourServer`, `ownerInformation`, 
+             `zbxicmpitemid`, `zbxhttpitemid`, `operator`, `rtspPort`, `orderIndex`, 
+             `state`, `streamInput`, `serialNumber`, `ethernetHardwareType`, 
+             `infoMountAddress`, `infoInverter`, `installationDate`, `warrantyPeriod`, 
+             `region`, `model`, `streamServer`, `unit`, `lockuid`
+         ) VALUES (
+             :uuid, :id, :streamName, :localAddress, :localMask, :localGateway,
+             :name, :userName, :password, :latitude, :longitude, :manageUrl,
+             :deviceIpAddressCamera, :height, :locked, :archiveIdentify, :maintenance,
+             :remoteTourServerAddress, :remoteTourServer, :ownerInformation,
+             :zbxicmpitemid, :zbxhttpitemid, :operator, :rtspPort, :orderIndex,
+             :state, :streamInput, :serialNumber, :ethernetHardwareType,
+             :infoMountAddress, :infoInverter, :installationDate, :warrantyPeriod,
+             :region, :model, :streamServer, :unit, :lockuid
+         )
+     """)
+
     row = {
-        "id": 999999,  # твой уникальный id
-        "uuid": str(uuid.uuid4()),  # обязательно уникальный
-        "region": 1,  # обязательное поле
-        "model": 1,  # обязательное поле
-        "userName": "operator_test",  # обязательное поле
-        "password": "test_password",  # обязательное поле
-        "latitude": 0.0,  # обязательное поле без дефолта
-        "longitude": 0.0,  # обязательное поле без дефолта
-        "manageUrl": "http://localhost",  # обязательное поле без дефолта
-        "remoteTourServerAddress": "",  # обязательное поле без дефолта
-        "remoteTourServer": 0,  # обязательное поле без дефолта
-        "orderIndex": 0,  # обязательное поле без дефолта
-        "state": 1  # обязательное поле без дефолта
+        "uuid": "403742e4-b29f-4954-9c58-794903d3c1f4",
+        "id": 1165,
+        "streamName": "RU.01.1165",
+        "localAddress": "192.168.201.249",
+        "localMask": "",
+        "localGateway": "192.168.0.1",
+        "name": "Стенд - низ - Тесно",
+        "userName": "iraida20",
+        "password": "hor9LyJM$5",
+        "latitude": 56.767367444288,
+        "longitude": 33.349603931413,
+        "manageUrl": "http://192.168.201.249:487",
+        "deviceIpAddressCamera": "",
+        "height": 24,
+        "locked": 0,
+        "archiveIdentify": "RU.01.1165",
+        "maintenance": 0,
+        "remoteTourServerAddress": "",
+        "remoteTourServer": 0,
+        "ownerInformation": "Солнце увеличиваться песня факультет способ остановить экзамен.",
+        "zbxicmpitemid": 38621,
+        "zbxhttpitemid": 38620,
+        "operator": 1,
+        "rtspPort": "487",
+        "orderIndex": 0,
+        "state": 1,
+        "streamInput": "rtsp://iraida20:hor9LyJM$5@192.168.201.249:487/axis-media/media.amp",
+        "serialNumber": "",
+        "ethernetHardwareType": 0,
+        "infoMountAddress": "д. Пушкинские Горы, алл. Линейная, д. 277, 417253",
+        "infoInverter": 0,
+        "installationDate": "2025-10-22",
+        "warrantyPeriod": "2026-05-25",
+        "region": 1,
+        "model": 6,
+        "streamServer": 1,
+        "unit": 2,
+        "lockuid": -1
     }
 
-    # Вставка через SQLAlchemy
-    conn.execute(cameras.insert().values(row))
-
+    conn.execute(insert_query, row)
+    logging.info(f"Таблица cameras заполнена тестовыми данными в количестве {len(rows)} шт.")
