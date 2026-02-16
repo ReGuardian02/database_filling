@@ -1,4 +1,10 @@
+import logging
 import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
+logging.basicConfig(level=logging.INFO)
 
 DB_HOST = os.getenv("DB_HOST")
 DB_PORT = int(os.getenv("DB_PORT"))
