@@ -22,18 +22,25 @@ def truncate_table(conn, table_name: str):
     conn.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
     logging.info(f"Таблица {table_name} была сброшена")
 
-def safe_insert(conn, table: Table, rows: list[dict]):
+def direct_sql_insert(conn, table_name: str, rows: list[dict]):
+    """
+    Универсальная функция для вставки данных в любую таблицу.
+
+    :param conn: активное SQLAlchemy соединение
+    :param table_name: имя таблицы
+    :param rows: iterable словарей, где ключи = имена колонок
+    """
+    rows = list(rows)
     if not rows:
-        return
+        return  # нечего вставлять
 
-    mapper = inspect(table)
-    table_columns = set(c.name for c in mapper.columns)
-    auto_inc_keys = {c.name for c in mapper.columns if c.primary_key and c.autoincrement}
+    columns = list(rows[0].keys())
+    column_list = ", ".join(f"`{col}`" for col in columns)
+    values_list = ", ".join(f":{col}" for col in columns)
 
-    filtered_rows = [
-        {k: v for k, v in row.items() if k in table_columns and k not in auto_inc_keys}
-        for row in rows
-    ]
+    stmt = text(f"""
+        INSERT INTO `{table_name}` ({column_list})
+        VALUES ({values_list})
+    """)
 
-    stmt = insert(table)
-    conn.execute(stmt.values(filtered_rows))
+    conn.execute(stmt, rows)
