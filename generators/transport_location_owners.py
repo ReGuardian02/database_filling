@@ -9,7 +9,7 @@ def generate_owners(count: int) -> list[dict]:
 
     for _ in range(count):
         row = {
-            "name": add_unique_id("Тестовый держатель ресурсов")
+            "name": add_unique_id("Тестовый держатель ресурсов ")
         }
 
         rows.append(row)

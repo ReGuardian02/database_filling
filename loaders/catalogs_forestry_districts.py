@@ -1,9 +1,15 @@
+import logging
 import random
-from sqlalchemy import text, select
+from sqlalchemy import select
+
+from db.tables import truncate_table
 
 
 def load_catalogs_forestry_districts(conn, tables, rows: list[dict]) -> None:
     forestries = tables["catalogs_forestries"]
+    districts = tables["catalogs_forestry_districts"]
+
+    truncate_table(conn, "catalogs_forestry_districts")
 
     forestry_ids = [
         r[0]
@@ -18,11 +24,5 @@ def load_catalogs_forestry_districts(conn, tables, rows: list[dict]) -> None:
     for row in rows:
         row["forestry_id"] = random.choice(forestry_ids)
 
-    stmt = text("""
-        INSERT INTO catalogs_forestry_districts
-            (forestry_id, name, code, code_lv)
-        VALUES
-            (:forestry_id, :name, :code, :code_lv)
-    """)
-
-    conn.execute(stmt, rows)
+    conn.execute(districts.insert().values(rows))
+    logging.info(f"Таблица catalogs_forestry_districts заполнена тестовыми данными в количестве {len(rows)} шт.")

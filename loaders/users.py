@@ -1,13 +1,15 @@
+import logging
 import random
-from sqlalchemy import text, select
+from sqlalchemy import select
+
+from db.tables import truncate_table
 
 
 def load_users(conn, tables, rows: list[dict]) -> None:
     units = tables["units"]
+    users = tables["users"]
 
-    conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
-    conn.execute(text("TRUNCATE TABLE users"))
-    conn.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
+    truncate_table(conn, "users")
 
     unit_ids = [
         r[0]
@@ -22,21 +24,5 @@ def load_users(conn, tables, rows: list[dict]) -> None:
     for row in rows:
         row["unit"] = random.choice(unit_ids)
 
-    stmt = text("""
-        INSERT INTO users (
-            unit, name, password, outputName, permissions, language,
-            blocked, towers, params, layoutColumns, layoutRows,
-            email, position, mobile_number, station_number,
-            close_session, sip_login, sip_password, sip_server,
-            extent, allowPrivateMessages
-        )
-        VALUES (
-            :unit, :name, :password, :outputName, :permissions, :language,
-            :blocked, :towers, :params, :layoutColumns, :layoutRows,
-            :email, :position, :mobile_number, :station_number,
-            :close_session, :sip_login, :sip_password, :sip_server,
-            :extent, :allowPrivateMessages
-        )
-    """)
-
-    conn.execute(stmt, rows)
+    conn.execute(users.insert().values(rows))
+    logging.info(f"Таблица users заполнена тестовыми данными в количестве {len(rows)} шт.")
