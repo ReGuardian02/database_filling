@@ -1,5 +1,5 @@
 import random
-import uuid
+from urllib.parse import quote
 from datetime import datetime, timedelta
 from faker import Faker
 
@@ -24,8 +24,8 @@ def generate_cameras(count: int) -> list[dict]:
         ip_last = random.randint(0, 255)
         port = random.randint(100, 999)
 
-        username = fake.user_name()
-        password = fake.password(length=10)
+        encoded_username = quote(fake.user_name(), safe='')
+        encoded_password = quote(fake.password(length=10), safe='')
 
         local_address = f"192.168.201.{ip_last}"
 
@@ -36,8 +36,8 @@ def generate_cameras(count: int) -> list[dict]:
             "localAddress": local_address,
             "manageUrl": f"http://{local_address}",
             "rtspPort": port,
-            "userName": username,
-            "password": password,
+            "userName": encoded_username,
+            "password": encoded_password,
             "latitude": random.randint(LAT_MIN, LAT_MAX),
             "longitude": random.randint(LON_MIN, LON_MAX),
             "height": random.randint(1, 100),
