@@ -6,8 +6,8 @@ from faker import Faker
 fake = Faker("ru_RU")
 
 
-LAT_MIN, LAT_MAX = 54.0, 60.0
-LON_MIN, LON_MAX = 30.0, 40.0
+LAT_MIN, LAT_MAX = 54, 60
+LON_MIN, LON_MAX = 30, 40
 
 
 def random_date(start_days: int, end_days: int) -> str:
@@ -21,7 +21,7 @@ def generate_cameras(count: int) -> list[dict]:
 
     for _ in range(count):
         cam_id = ids.pop()
-        ip_last = f"{random.randint(0, 255):03d}"
+        ip_last = random.randint(0, 255)
         port = random.randint(100, 999)
 
         username = fake.user_name()
@@ -31,27 +31,17 @@ def generate_cameras(count: int) -> list[dict]:
 
         row = {
             "id": cam_id,
-            "uuid": str(uuid.uuid4()),
+            "name": f"Стенд - {random.choice(['верх', 'низ'])} - {fake.word().capitalize()}",
             "streamName": f"RU.01.{cam_id}",
             "localAddress": local_address,
-            "localMask": random.choice(["", "255.255.255.0"]),
-            "localGateway": random.choice(["", "192.168.0.1"]),
-            "name": f"Стенд - {random.choice(['верх', 'низ'])} - {fake.word().capitalize()}",
+            "manageUrl": f"http://{local_address}",
+            "rtspPort": port,
             "userName": username,
             "password": password,
-            "latitude": round(random.uniform(LAT_MIN, LAT_MAX), 12),
-            "longitude": round(random.uniform(LON_MIN, LON_MAX), 12),
-            "manageUrl": f"http://{local_address}:{port}",
+            "latitude": random.randint(LAT_MIN, LAT_MAX),
+            "longitude": random.randint(LON_MIN, LON_MAX),
             "height": random.randint(1, 100),
-            "ownerInformation": fake.sentence(),
-            "rtspPort": str(port),
-            "streamInput": (
-                f"rtsp://{username}:{password}@"
-                f"{local_address}:{port}/axis-media/media.amp"
-            ),
-            "infoMountAddress": fake.address(),
-            "installationDate": random_date(-120, -90),
-            "warrantyPeriod": random_date(30, 365 * 5),
+            "action": "save"
         }
 
         rows.append(row)

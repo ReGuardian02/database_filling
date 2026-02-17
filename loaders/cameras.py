@@ -1,31 +1,42 @@
 import logging
-import os
 import random
-from urllib.parse import urljoin
-
 from requests import Session
-from sqlalchemy import select, insert, text
-from db.tables import truncate_table
+from sqlalchemy import select
+from api import cameras
 
+
+def clear_cameras(session: Session):
+    logging.info("Запуск очистки камер...")
+    all_cameras = cameras.get_all_cameras(session)
+
+    if not all_cameras:
+        logging.info("Список камер пуст")
+        return
+
+    for camera in all_cameras:
+        delete_response = cameras.delete_camera(session, camera['cid'])
+        assert not delete_response, f"Ошибка при удалении камеры: {delete_response}"
+
+    logging.info("Очистка всех камер завершена")
 
 def load_cameras(conn, tables, session: Session, rows: list[dict]) -> None:
-    truncate_table(conn, "cameras")
-    headers = {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
+    logging.info("Запуск заполнения таблицы камер...")
+    clear_cameras(session)
+
     regions = [r[0] for r in conn.execute(select(tables["regions"].c.id))]
     models = [r[0] for r in conn.execute(select(tables["camera_models"].c.id))]
     streams = [r[0] for r in conn.execute(select(tables["stream_servers"].c.id))]
-    units = [r[0] for r in conn.execute(select(tables["units"].c.id))]
-
-    if not all([regions, models, streams, units]):
+    # units = [r[0] for r in conn.execute(select(tables["units"].c.id))]
+    if not all([regions, models, streams]):
         raise RuntimeError("Недостаточно FK-данных для cameras")
 
     for row in rows:
         row["region"] = random.choice(regions)
         row["model"] = random.choice(models)
         row["streamServer"] = random.choice(streams)
-        row["unit"] = random.choice(units)
+        # row["unit"] = random.choice(units)
 
-        response = session.post(url=urljoin(os.getenv("STAND_URL"), os.getenv("CAMERA_PATH")), headers=headers, data=row)
-        response.raise_for_status()
+        logging.info(f"Данные камеры для создания: {row}")
+        cameras.create_camera(session, row)
 
     logging.info(f"Таблица cameras заполнена тестовыми данными в количестве {len(rows)} шт.")
