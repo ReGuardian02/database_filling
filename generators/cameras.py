@@ -18,11 +18,13 @@ def random_date(start_days: int, end_days: int) -> str:
 def generate_cameras(count: int) -> list[dict]:
     rows = []
     ids = random.sample(range(1, 5000), count)
+    directions = ['верх', 'низ', 'право', 'лево']
 
     for _ in range(count):
         cam_id = ids.pop()
         ip_last = random.randint(0, 255)
         port = random.randint(100, 999)
+        direction = random.choice(directions)
 
         encoded_username = quote(fake.user_name(), safe='')
         encoded_password = quote(fake.password(length=10), safe='')
@@ -31,7 +33,7 @@ def generate_cameras(count: int) -> list[dict]:
 
         row = {
             "id": cam_id,
-            "name": f"Стенд - {random.choice(['верх', 'низ'])} - {fake.word().capitalize()}",
+            "name": f"{cam_id} Стенд - {direction} - {fake.word().capitalize()}",
             "streamName": f"RU.01.{cam_id}",
             "localAddress": local_address,
             "manageUrl": f"http://{local_address}",
