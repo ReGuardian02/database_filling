@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from sqlalchemy import select
 from api import cameras
 from db.tables import truncate_table
+from config import MAX_WORKERS
 
 
 def clear_cameras():
@@ -16,8 +17,7 @@ def clear_cameras():
         return
 
     results = []
-    workers = min(5, len(cids))
-    with ThreadPoolExecutor(max_workers=workers) as executor:
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = [executor.submit(cameras.delete_camera, cid) for cid in cids]
 
         for future in as_completed(futures):
@@ -27,11 +27,7 @@ def clear_cameras():
                 logging.error(f"Ошибка при удалении камеры! {e}")
                 raise
 
-    # for cid in cids:
-    #     delete_response = cameras.delete_camera(cid)
-    #     assert not delete_response, f"Ошибка при удалении камеры: {delete_response}"
-
-    logging.info("Очистка всех камер завершена")
+    logging.info(f"Очистка всех камер завершена")
 
 def load_cameras(conn, tables, rows: list[dict]) -> None:
     logging.info("Запуск заполнения таблицы камер...")
@@ -51,9 +47,7 @@ def load_cameras(conn, tables, rows: list[dict]) -> None:
         row["streamServer"] = random.choice(streams)
 
     results = []
-    workers = min(5, len(rows))
-
-    with ThreadPoolExecutor(max_workers=workers) as executor:
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = [executor.submit(cameras.create_camera, row) for row in rows]
 
         for future in as_completed(futures):
