@@ -1,9 +1,7 @@
 import logging
 import os
 from urllib.parse import urljoin
-
 import requests
-from requests import Session
 
 
 CAMERAS_URL = urljoin(os.getenv("STAND_URL"), os.getenv("CAMERA_PATH"))
