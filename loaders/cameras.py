@@ -2,6 +2,8 @@ import logging
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from sqlalchemy import select
+
+import generators.cameras
 from api import cameras
 from db.tables import truncate_table
 
@@ -27,15 +29,12 @@ def clear_cameras():
                 logging.error(f"Ошибка при удалении камеры! {e}")
                 raise
 
-    # for cid in cids:
-    #     delete_response = cameras.delete_camera(cid)
-    #     assert not delete_response, f"Ошибка при удалении камеры: {delete_response}"
-
     logging.info("Очистка всех камер завершена")
 
 def load_cameras(conn, tables, rows: list[dict]) -> None:
     logging.info("Запуск заполнения таблицы камер...")
     clear_cameras()
+    valid_camera_data = generators.cameras.generate_valid_camera()
     truncate_table(conn, "camstat")
 
     regions = [r[0] for r in conn.execute(select(tables["regions"].c.id))]
@@ -64,3 +63,13 @@ def load_cameras(conn, tables, rows: list[dict]) -> None:
                 raise
 
     logging.info(f"Таблица cameras заполнена тестовыми данными в количестве {len(results)} шт.")
+
+    valid_camera_data["region"] = random.choice(regions)
+    valid_camera_data["model"] = random.choice(models)
+    valid_camera_data["streamServer"] = random.choice(streams)
+
+    response = cameras.create_camera(valid_camera_data)
+    if "error" in response.keys():
+        raise ValueError(f"Ошибка при создании камеры: {response['error']}")
+
+    logging.info(f"В таблицу cameras добавлена валидная камера")

@@ -1,3 +1,4 @@
+import os
 import random
 from urllib.parse import quote
 from datetime import datetime, timedelta
@@ -34,7 +35,7 @@ def generate_cameras(count: int) -> list[dict]:
         row = {
             "id": cam_id,
             "name": f"{cam_id} Стенд - {direction} - {fake.word().capitalize()}",
-            "streamName": f"RU.01.{cam_id}",
+            "streamName": f"RU.{os.getenv("SYSTEM_NUMBER")}.{cam_id}",
             "localAddress": local_address,
             "manageUrl": f"http://{local_address}",
             "rtspPort": port,
@@ -49,3 +50,26 @@ def generate_cameras(count: int) -> list[dict]:
         rows.append(row)
 
     return rows
+
+def generate_valid_camera() -> dict:
+    cam_id = random.randint(5001, 10000)
+
+    encoded_username = quote(os.getenv("CAMERA_USERNAME"), safe='')
+    encoded_password = quote(os.getenv("CAMERA_PASSWORD"), safe='')
+
+    row = {
+        "id": cam_id,
+        "name": "Тестовая валидная камера",
+        "streamName": f"RU.{os.getenv("SYSTEM_NUMBER")}.{cam_id}",
+        "localAddress": os.getenv("CAMERA_LOCAL_ADDRESS"),
+        "manageUrl": f"http://{os.getenv('CAMERA_LOCAL_ADDRESS')}",
+        "rtspPort": os.getenv("CAMERA_PORT"),
+        "userName": encoded_username,
+        "password": encoded_password,
+        "latitude": random.randint(LAT_MIN, LAT_MAX),
+        "longitude": random.randint(LON_MIN, LON_MAX),
+        "height": random.randint(1, 100),
+        "action": "save"
+    }
+
+    return row
